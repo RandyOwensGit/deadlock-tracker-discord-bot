@@ -18,6 +18,7 @@ HEROES_JSON_PATH = "heroes.json"
 
 # API Settings
 MATCH_HISTORY_URL = "https://api.deadlock-api.com/v1/players/{steam_id}/match-history"
+MATCH_URL = "https://api.deadlock-api.com/v1/matches/{match_id}/metadata?is_custom=false"
 
 # ===================== Logging Setup =====================
 logging.basicConfig(
@@ -56,6 +57,17 @@ def get_last_matches(steam_id: str, limit: int) -> list:
       logger.error(f"API request failed for {steam_id}: {e}")
       return []
    
+# Fetch match data
+def get_match(match_id: int) -> list:
+   url = MATCH_URL.format(match_id = match_id)
+   try:
+      response = requests.get(url, timeout=10)
+      response.raise_for_status()
+      return response.json()
+   except requests.RequestException as e:
+      logger.error(f"API request failed for {match_id}: {e}")
+      return []
+   
 # Formatted Match Line
 def format_match_line(match: dict) -> str:
    # Hero Name
@@ -81,7 +93,62 @@ def format_match_line(match: dict) -> str:
    duration_sec = match.get("match_duration_s")
    duration = format_match_time_duration(duration_sec)
 
-   return f"{hero_name:<12} | {result:<4} | {kda:<8} | {souls_formatted:<7}souls | {duration}"
+   # Finding friends in match
+   match_data = get_match(match.get('match_id'))
+   match_info = match_data.get('match_info')
+   match_players = match_info.get('players')
+
+   friends_in_match = []
+
+   for player in match_players:
+      player = get_friend_name_by_game_id(player['account_id'])
+
+      if player == 'None':
+         continue
+      else:
+         friends_in_match.append(player)
+
+   return f"{hero_name:<12} | {result:<4} | {kda:<8} | {souls_formatted:<7}souls | {duration} | {friends_in_match}"
+
+# Get Friend by steamid64
+def get_friend_name_by_game_id(id: int) -> str:
+   # Randy
+   if id == 91668144:
+      return 'Randy'
+
+   # Clayton
+   elif id == 415616741:
+      return 'Clayton'
+
+   # Hunty Primary Account
+   elif id == 158510109:
+      return 'Hunty Main'
+   
+   # Hunty Second Account
+   elif id == 1245647193:
+      return 'Hunty Second'
+   
+   # Hunty Third Account
+   elif id == 81913945:
+      return 'Hunty Third'
+
+   # Engin
+   elif id == 365467670:
+      return 'Engin'
+
+   # Blake
+   elif id == 125258721:
+      return 'Blake'
+
+   # Burak
+   elif id == 319942495:
+      return 'Burak'   
+   
+   # Sean
+   elif id == 31321321:
+      return 'Sean'
+   
+   return 'None'
 
 # ===================== BOT SETUP =====================
 intents = discord.Intents.default()
@@ -125,6 +192,8 @@ async def last_matches(ctx, steam_id: str, amt_of_matches: int):
    )
    
    await ctx.send(embed=embed)
+
+# Testing command for parsing a match
 
 # ====================== RUN THE BOT ======================
 if __name__ == "__main__":
