@@ -69,7 +69,7 @@ def get_match(match_id: int) -> list:
       return []
    
 # Formatted Match Line
-def format_match_line(match: dict) -> str:
+def format_match_line(match: dict, steam_id: str) -> str:
    # Hero Name
    hero_name = HERO_MAP.get(str(match.get('hero_id')))
 
@@ -100,15 +100,30 @@ def format_match_line(match: dict) -> str:
 
    friends_in_match = []
 
+   lane_value = match_players['assigned_lane']
+
    for player in match_players:
       player = get_friend_name_by_game_id(player['account_id'])
 
-      if player == 'None':
-         continue
-      else:
-         friends_in_match.append(player)
+      if lane_value == player['assigned_lane']:
+         lane_partner = get_friend_name_by_game_id(player['account_id'])
 
-   return f"{hero_name:<12} | {result:<4} | {kda:<8} | {souls_formatted:<7}souls | {duration} | {friends_in_match}"
+         if lane_partner == 'None':
+            lane_partner = 'Random'
+
+         
+      # Get all friends in the match
+      # if player == 'None':
+      #    continue
+      # else:
+      #    friends_in_match.append(player)
+   
+   # Get Lane partner
+   # First get your lane:
+
+
+
+   return f"{hero_name:<12} | {result:<4} | {kda:<8} | {souls_formatted:<7}souls | {duration} | Lane Partner: {lane_partner}"
 
 # Get Friend by steamid64
 def get_friend_name_by_game_id(id: int) -> str:
@@ -180,7 +195,7 @@ async def last_matches(ctx, steam_id: str, amt_of_matches: int):
       return
    
    # Build matches message
-   lines = [format_match_line(match) for match in matches]
+   lines = [format_match_line(match, steam_id) for match in matches]
    response_text = "\n".join(lines)
 
    # Creating Embed
