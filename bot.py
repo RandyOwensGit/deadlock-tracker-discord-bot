@@ -69,7 +69,7 @@ def get_match(match_id: int) -> list:
       return []
    
 # Formatted Match Line
-def format_match_line(match: dict, steam_id: str) -> str:
+def format_match_line(match: dict, steam_id: int) -> str:
    # Hero Name
    hero_name = HERO_MAP.get(str(match.get('hero_id')))
 
@@ -96,37 +96,60 @@ def format_match_line(match: dict, steam_id: str) -> str:
    # Finding friends in match
    match_data = get_match(match.get('match_id'))
    match_info = match_data.get('match_info')
-   match_players = match_info.get('players')
+   players_in_match = match_info.get('players')
 
-   friends_in_match = []
+   # Getting Lane Partner
+   assigned_lane = 0       # Assigned lane of calling player
+   player_name = ""        #a Name of calling player
+   assigned_team = None    # assigned team
+   lane_partner = ""       # Correct Partner
 
-   lane_value = match_players['assigned_lane']
+   # Getting calling player's lane & name
+   for player in players_in_match:
+      player_id = get_steam_id_by_deadlock_id(int(player['account_id']))
 
-   for player in match_players:
-      player = get_friend_name_by_game_id(player['account_id'])
+      # Find caller by deadlock id in match
+      if player_id == steam_id:
+         # Get caller's lane
+         assigned_lane = player['assigned_lane']
 
-      if lane_value == player['assigned_lane']:
-         lane_partner = get_friend_name_by_game_id(player['account_id'])
+         # Set caller name
+         player_name = get_friend_name_by_steam_id(player['account_id'])
 
-         if lane_partner == 'None':
-            lane_partner = 'Random'
+         # Set caller team
+         assigned_team = player['team']
 
-         
-      # Get all friends in the match
-      # if player == 'None':
-      #    continue
-      # else:
-      #    friends_in_match.append(player)
-   
-   # Get Lane partner
-   # First get your lane:
+         # done
+         break
 
+   # Finding lane partner
+   for player in players_in_match:
 
+      # found same lane as caller
+      if assigned_lane == player['assigned_lane']:
+         # Getting friend's name
+         lane_partner = get_friend_name_by_steam_id(player['account_id'])
+
+         # Check if lane_partner is caller = ignore
+         if lane_partner == player_name:
+            lane_partner = 'None'
+            continue
+
+         # Check if lane_partner is on the correct team
+         if player['team'] != assigned_team:
+            lane_partner = 'None'
+            continue
+
+         break
+
+      # Random lane partner
+      if lane_partner == 'None':
+         lane_partner = 'Random'
 
    return f"{hero_name:<12} | {result:<4} | {kda:<8} | {souls_formatted:<7}souls | {duration} | Lane Partner: {lane_partner}"
 
 # Get Friend by steamid64
-def get_friend_name_by_game_id(id: int) -> str:
+def get_friend_name_by_steam_id(id: int) -> str:
    # Randy
    if id == 91668144:
       return 'Randy'
@@ -165,6 +188,46 @@ def get_friend_name_by_game_id(id: int) -> str:
    
    return 'None'
 
+# Get steam_id by account_id (deadlock account id)
+def get_steam_id_by_deadlock_id(id: int) -> int:
+   # Randy
+   if id == 91668144:
+      return 76561198051933872
+
+   # Clayton
+   elif id == 415616741:
+      return 76561198375882469
+
+   # Hunty Primary Account
+   elif id == 158510109:
+      return 76561198118775837
+   
+   # Hunty Second Account
+   elif id == 1245647193:
+      return 76561199205912921
+   
+   # Hunty Third Account
+   elif id == 81913945:
+      return 76561197979615838
+
+   # Engin
+   elif id == 365467670:
+      return 76561198325733398
+
+   # Blake
+   elif id == 125258721:
+      return 76561198085524449
+
+   # Burak
+   elif id == 319942495:
+      return 76561198280208223   
+   
+   # Sean
+   elif id == 31321321:
+      return 0
+   
+   return 0
+
 # ===================== BOT SETUP =====================
 intents = discord.Intents.default()
 intents.message_content = True
@@ -195,7 +258,7 @@ async def last_matches(ctx, steam_id: str, amt_of_matches: int):
       return
    
    # Build matches message
-   lines = [format_match_line(match, steam_id) for match in matches]
+   lines = [format_match_line(match, int(steam_id)) for match in matches]
    response_text = "\n".join(lines)
 
    # Creating Embed
