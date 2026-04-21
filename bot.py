@@ -6,6 +6,7 @@ import datetime
 import logging
 from dotenv import load_dotenv
 import os
+from database import Session, Player
 
 # ===================== Configuration =====================
 # Move to .env file later
@@ -272,6 +273,56 @@ async def last_matches(ctx, steam_id: str, amt_of_matches: int):
    await ctx.send(embed=embed)
 
 # Testing command for parsing a match
+
+# Command for setting up 'Profile'
+# Requires steamid64
+@bot.command(name="setup")
+async def setup(ctx, steam_id: str):
+   # Validation
+   if not steam_id.isdigit() or len(steam_id) != 17:
+      await ctx.send("Invalid steamID64. 17 Digit number")
+      return
+   
+   steam_id_int = int(steam_id)
+
+   session = Session()
+   try:
+      # Check if player already exists in players table
+      existing = session.query(Player).filter_by(steam_id=steam_id_int).first()
+
+      if existing:
+         await ctx.send(f"{ctx.author.name} already setup with SteamID64: {steam_id}")
+         return
+
+      # Get Deadlock_api_id
+      data = get_last_matches(steam_id, 1)
+      account_id = data[0]['account_id']
+
+   
+      # Create new player
+      new_player = Player(
+         steam_id=steam_id_int,
+         discord_id=ctx.author.id,
+         deadlock_api_id=account_id,
+         display_name=ctx.author.display_name
+      )
+
+      session.add(new_player)
+      session.commit()
+
+      await ctx.send(
+         f"{ctx.author.display_name} added to the Deadlock Tracker.\n"
+         f"SteamID: {steam_id}\n"
+         f"DiscordID: {ctx.author.id}\n"
+         f"DeadlockID: {account_id}"
+      )
+   
+   except Exception as e:
+      session.rollback()
+      await ctx.send(f"Error saving to database: {e}")
+   finally:
+      session.close()
+
 
 # ====================== RUN THE BOT ======================
 if __name__ == "__main__":

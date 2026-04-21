@@ -1,0 +1,47 @@
+## 📝 To-Do List
+
+- [x] Initial Development Setup
+- [x] Configured as Discord Bot
+- [x] Host on server
+- [x] Create README.md
+- [x] Create DB & Tables
+- [ ] Reorganize File Structure
+- [ ] Populate DB with match history
+   - [ ] 
+- [ ] link data to specific discord accounts
+- [ ] Create new commands:
+   - [ ] addmatchhistory
+   - [ ] history
+      - [ ] various histories to show data overtime/progression/regression
+   - [ ] records
+   - [ ] lanestats 
+   - [ ] stats (hero)
+   - [ ] generalstats
+   - [ ] careerstats
+   - [ ] career
+   - [ ] match x
+   - [ ] versus
+   - [ ]
+- [ ] updates on match completion
+   - [ ]
+- [ ] Career lvl & xp system
+   - [ ]
+- [ ] Ranking System
+   - [ ]
+- [ ] Auto rating system (will be rudimentary)
+- [ ] Create web page
+- [ ] Data visualization
+- [ ] 
+- [ ] 
+- [ ] 
+- [ ] 
+- [ ] 
+- [ ] 
+- [ ] 
+- [ ] 
+- [ ] 
+- [ ] 
+- [ ] 
+- [ ] 
+- [ ] 
+- [x] Play Deadlock!
