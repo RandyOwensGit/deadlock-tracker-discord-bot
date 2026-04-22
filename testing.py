@@ -1,46 +1,39 @@
-import datetime
+
+
+
+
+
+
 
 import requests
 
-matchTime = 3214
 
-if matchTime >= 3600:
-   time = "01:"
-else:
-   time = ""
+# response = requests.get(f"https://api.deadlock-api.com/v1/players/76561198118775837/match-history")
+# data = response.json()
 
+# print(type(data))           # list or dict?
+# print(data.keys() if isinstance(data, dict) else "It's a list!")
+# if isinstance(data, dict):
+#    print("Keys:", list(data.keys()))
+#    print("Sample:", data.get("matches") or data.get("data") or data)
+   
+# Here
+"""Fetch ALL matches for a player from the Deadlock API."""
+url = f"https://api.deadlock-api.com/v1/players/76561198118775837/match-history"
+try:
+   response = requests.get(url, timeout=15)
+   response.raise_for_status()
+   matches = response.json()
+        
+   if isinstance(matches, list):
+      print(f"✅ Successfully fetched {len(matches)} matches")
+   else:
+      print(f"⚠️  Unexpected response format: {type(matches)}")
+            
+except Exception as e:
+   print(f"❌ Error fetching matches for : {e}")
 
-time += datetime.datetime.fromtimestamp(matchTime).strftime('%M:%S')
-
-print(time)
-
-
-MATCH_HISTORY_URL = "https://api.deadlock-api.com/v1/players/{steam_id}/match-history"
-
-# Fetch x last matches from Deadlock API
-def get_last_matches(steam_id: str, limit: int) -> list:
-   url = MATCH_HISTORY_URL.format(steam_id = steam_id)
-   try:
-      response = requests.get(url, timeout=10)
-      response.raise_for_status()
-      all_matches = response.json()
-      return all_matches[:limit]
-   except requests.RequestException as e:
-      return []
-
-data = get_last_matches(76561198051933872, 1)
-account_id = data[0]['account_id']
-
-print(account_id)
-
-
-
-
-
-
-
-
-
-
+for match in matches:
+   print(match['match_id'])
 
 
