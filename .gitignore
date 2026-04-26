@@ -3,3 +3,5 @@ __pycache__/
 *.pyc
 ssh-stuff.txt
 notes.txt
+utils/testing
+deadlock.db

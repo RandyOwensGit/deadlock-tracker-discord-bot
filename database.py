@@ -62,7 +62,6 @@ class PlayerMatch(Base):
 
    hero_id = sa.Column(sa.Integer)
    team = sa.Column(sa.Integer)
-   result = sa.Column(sa.Integer)
    kills = sa.Column(sa.Integer, default=0)
    deaths = sa.Column(sa.Integer, default=0)
    assists = sa.Column(sa.Integer, default=0)

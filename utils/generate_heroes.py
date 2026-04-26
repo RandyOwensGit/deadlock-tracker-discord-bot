@@ -2,6 +2,9 @@ import requests
 import json
 from datetime import datetime
 
+## ----------- Generate Heroes List ---------------
+# To be replaced with "created" file
+
 # Fetch active heroes
 url = "http://assets.deadlock-api.com/v2/heroes?only_active=true"
 

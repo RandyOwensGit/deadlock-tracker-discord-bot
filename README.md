@@ -1,3 +1,8 @@
+cogs folder -> Commands
+utils -> utility functions, particularly DB and API stuff for now
+data -> Various helper data
+
+
 ## 📝 To-Do List
 
 - [x] Initial Development Setup
