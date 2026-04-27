@@ -26,7 +26,7 @@ async def on_ready():
 
 # Loading bot cogs ( commands )
 async def load_cogs():
-   for filename in ["setup", "stats"]:
+   for filename in ["setup"]:
       try:
          await bot.load_extension(f"cogs.{filename}")
          logger.info(f"Loaded cog: cogs.{filename}")

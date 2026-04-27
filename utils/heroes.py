@@ -15,7 +15,7 @@ def load_heroes():
          print(f"heroes.json not found at {HEROES_JSON_PATH}")
          return False
       
-      with open(path, "r", econding="utf-8") as f:
+      with open(path, "r", encoding="utf-8") as f:
          hero_data = json.load(f)
 
       HERO_MAP = hero_data.get("hero_map", {})

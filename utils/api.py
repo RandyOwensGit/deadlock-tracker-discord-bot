@@ -19,6 +19,17 @@ def get_last_matches(steam_id: str, limit: int) -> list:
       logger.error(f"API request failed for {steam_id}: {e}")
       return []
    
+# Fetch all matches
+def get_all_matches(steam_id: str) -> list:
+   url = MATCH_HISTORY_URL.format(steam_id = steam_id)
+
+   try:
+      response = requests.get(url, timeout=10)
+      response.raise_for_status()
+      return response.json()
+   except requests.RequestException as e:
+      logger.error(f"API request failed for {steam_id}: {e}")
+   
 # Fetch match data
 def get_match(match_id: int) -> list:
    url = MATCH_URL.format(match_id = match_id)
@@ -29,4 +40,4 @@ def get_match(match_id: int) -> list:
    except requests.RequestException as e:
       logger.error(f"API request failed for {match_id}: {e}")
       return []
-   
+

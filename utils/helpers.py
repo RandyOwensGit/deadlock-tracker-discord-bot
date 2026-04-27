@@ -1,7 +1,7 @@
 import datetime
 from utils.heroes import HERO_MAP
-from api import get_match
-from friends import get_friend_name_by_steam_id, get_steam_id_by_deadlock_id
+from utils.api import get_match
+from utils.friends import get_friend_name_by_steam_id, get_steam_id_by_deadlock_id
 
 # ============================= HELPER FUNCTIONS =============================
 

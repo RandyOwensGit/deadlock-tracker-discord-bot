@@ -3,6 +3,8 @@ from sqlalchemy.orm import DeclarativeBase, relationship, sessionmaker
 from datetime import datetime
 import json
 
+# Sets up DB
+
 # ================ BASE ================
 class Base(DeclarativeBase):
    pass
@@ -75,6 +77,13 @@ class PlayerMatch(Base):
    max_health = sa.Column(sa.Integer, default=0)
    shots_hit = sa.Column(sa.Integer, default=0)
    shots_missed = sa.Column(sa.Integer, default=0)
+
+   is_complete = sa.Column(sa.Boolean, default=False)
+
+   # Prevent duplicate player match statistics
+   __table_args__ = (
+      sa.UniqueConstraint("match_id", "steam_id", name="uix_match_player"),
+   )
 
    # Relationships
    matches = relationship("Match", back_populates="player_matches")
