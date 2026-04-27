@@ -27,7 +27,7 @@ def create_player(steam_id: int, discord_id: int, deadlock_api_id: int, display_
       session.add(new_player)
       session.commit()
 
-      logger.info(f"Player: {steam_id} added to DB successfully.")
+      logger.info(f"New Player: {steam_id} added to players table.")
       return 0
 
    except Exception as e:
@@ -61,7 +61,7 @@ def create_match(data) -> int:
       session.add(new_match)
       session.commit()
 
-      logger.info(f"MatchID: {data.get('match_id')} added to DB successfully.")
+      logger.info(f"DB CREATE---MatchID: {data.get('match_id')} added to matches table.")
       return 0
 
    except Exception as e:
@@ -115,7 +115,7 @@ def create_player_match_with_salts(data, steam_id, match_id) -> int:
       session.add(new_player_match)
       session.commit()
 
-      logger.info(f"MatchID: {match_id} & PlayerID: {steam_id} added to DB successfully.")
+      logger.info(f"DB CREATE---MatchID: {match_id} & PlayerID: {steam_id} added to player_matches table.")
       return 0
 
    except Exception as e:
@@ -160,7 +160,7 @@ def create_player_match_without_salts(data, steam_id) -> int:
       session.add(new_player_match)
       session.commit()
 
-      logger.info(f"MatchID: {data.get('match_id')} & PlayerID: {steam_id} added to DB successfully.")
+      logger.info(f"DB Create---MatchID: {data.get('match_id')} & PlayerID: {steam_id} added to player_matches table.")
       return 0
 
    except Exception as e:

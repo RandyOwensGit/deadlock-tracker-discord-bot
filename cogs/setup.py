@@ -1,5 +1,6 @@
-# Other commands for now:
-# Show x amount of previous matches for steam_id64
+
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 import datetime
 import discord
 import bot
@@ -8,7 +9,9 @@ from discord.ext import commands
 from database import Player, Session
 from utils.api import get_all_matches, get_last_matches, get_match
 from utils.db import create_match, create_player, create_player_match_with_salts, create_player_match_without_salts, get_deadlock_id_from_steam_id, get_steam_id_from_discord_id
-from utils.helpers import format_match_line
+from utils.helpers import format_match_line, save_matches_to_db
+
+executor = ThreadPoolExecutor(max_workers=3)
 
 class SetupCog(commands.Cog):
    def __init__(self, bot):
@@ -74,16 +77,17 @@ class SetupCog(commands.Cog):
          await ctx.send(f"{ctx.author.name} error adding player to players table.")
       
       await ctx.send(
-         f"{ctx.author.display_name} added to the Deadlock Tracker.\n"
+         f"{ctx.author.name} added to the Deadlock Tracker.\n"
          f"SteamID: {steam_id}\n"
          f"DiscordID: {ctx.author.id}\n"
-         f"DeadlockID: {account_id}"
+         f"DeadlockID: {account_id}\n"
+         f"Now run !update_matches if you have any deadlock games played!"
       )
 
 # Command for setting up Match History
 # Requires user to have ran the setup command
-   @commands.command(name="build_matches")
-   async def build_matches(self, ctx):
+   @commands.command(name="update_matches")
+   async def update_matches(self, ctx):
       # Get steamid64
       steam_id = get_steam_id_from_discord_id(ctx.author.id)
 
@@ -92,37 +96,20 @@ class SetupCog(commands.Cog):
 
       if steam_id == None:
          await ctx.send(f"You are not setup with this bot yet. Enter !setup <steamid64>")
+      
+      await ctx.send("Populating the database... Could take a bit.")
 
-      # Get match history
-      match_history = get_all_matches(steam_id)
+      def blocking_task():
+         amtOfMatchesSaved = save_matches_to_db(steam_id, deadlock_id, get_all_matches(steam_id))
 
-      # Iterate over match history
-      matches_parsed = 0
-      for match in match_history:
-         # Add match info
-         create_match(match)
+         return amtOfMatchesSaved
+      try:
+         matchesSaved = await asyncio.get_event_loop().run_in_executor(executor, blocking_task)
+         await ctx.send(f"Finished parsing matches into database for user {ctx.author.name}")
+         await ctx.send(f"{matchesSaved} matches populated into the DB for SteamID: {steam_id}\n")
+      except Exception as e:
+         await ctx.send(f"Error parsing matches for user {ctx.author.name}::: {e}")
 
-         # Get data of single match
-         match_data = get_match(match.get('match_id'))
-         match_id = match_data['match_info'].get('match_id')
-         
-         # check if match doesnt have salts
-         if match_data == None:
-            # Save basic data
-            create_player_match_without_salts(match, steam_id)
-            matches_parsed += 1
-            continue
-
-         # Find the player in the player list that matches
-         for player in match_data['match_info'].get('players'):
-            if player.get('account_id') == deadlock_id:
-               # Add full match data
-               create_player_match_with_salts(player, steam_id, match_id)
-               matches_parsed += 1
-
-         logger.info(f"MatchID: {match.get('match_id')} has been successfully parsed into the DB.")
-
-      await ctx.send(f"{matches_parsed} matches parsed into the DB for SteamID: {steam_id}\n")
 
 async def setup(bot):
    await bot.add_cog(SetupCog(bot))

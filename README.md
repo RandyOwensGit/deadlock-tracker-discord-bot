@@ -10,14 +10,15 @@ data -> Various helper data
 - [x] Host on server
 - [x] Create README.md
 - [x] Create DB & Tables
-- [ ] Reorganize File Structure
-- [ ] Populate DB with match history
-   - [ ] 
-- [ ] link data to specific discord accounts
+- [x] Reorganize File Structure
+- [x] Populate DB with match history
+   - [x] Match Parser
+   - [x] Match Parser without salts
+   - [x] Fix async issues
+- [x] link data to specific discord accounts
 - [ ] Create new commands:
-   - [ ] addmatchhistory
-   - [ ] history
-      - [ ] various histories to show data overtime/progression/regression
+   - [x] setup
+   - [x] update_matches
    - [ ] records
    - [ ] lanestats 
    - [ ] stats (hero)
@@ -26,6 +27,7 @@ data -> Various helper data
    - [ ] career
    - [ ] match x
    - [ ] versus
+   - [ ] various histories to show data overtime/progression/regression
    - [ ]
 - [ ] updates on match completion
    - [ ]

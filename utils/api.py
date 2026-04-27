@@ -1,8 +1,6 @@
-
 import requests
 from config import MATCH_HISTORY_URL, MATCH_URL
 from bot import logger
-
 
 # Accessing Deadlock API file
 
@@ -38,6 +36,7 @@ def get_match(match_id: int) -> list:
       response.raise_for_status()
       return response.json()
    except requests.RequestException as e:
+      # TODO: Add error handling for matches that dont have salts
       logger.error(f"API request failed for {match_id}: {e}")
       return []
 

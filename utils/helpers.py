@@ -1,7 +1,9 @@
 import datetime
+from utils.db import create_match, create_player_match_with_salts, create_player_match_without_salts
 from utils.heroes import HERO_MAP
-from utils.api import get_match
+from utils.api import get_all_matches, get_match
 from utils.friends import get_friend_name_by_steam_id, get_steam_id_by_deadlock_id
+from bot import logger
 
 # ============================= HELPER FUNCTIONS =============================
 
@@ -15,6 +17,41 @@ def format_match_time_duration(seconds: int) -> str:
       time += datetime.datetime.fromtimestamp(seconds).strftime('%M:%S')
 
    return time
+
+## Save match history to DB
+def save_matches_to_db(steam_id: int, deadlock_id: int, matches: list) -> int:
+   matches_parsed = 0
+
+   # Get match history
+   match_history = get_all_matches(steam_id)
+
+   # Iterate over match history
+   for match in match_history:
+      # Add match info
+      create_match(match)
+
+      # Get data of single match
+      match_data = get_match(match.get('match_id'))
+            
+      # check if match doesnt have salts
+      if not match_data:
+         # Save basic data
+         create_player_match_without_salts(match, steam_id)
+         matches_parsed += 1
+         continue
+
+      match_id = match_data['match_info'].get('match_id')
+
+      # Find the player in the player list that matches
+      for player in match_data['match_info'].get('players'):
+         if player.get('account_id') == deadlock_id:
+            # Add full match data
+            create_player_match_with_salts(player, steam_id, match_id)
+            matches_parsed += 1
+
+      logger.info(f"Parsed: MatchID: {match.get('match_id')} statistics added to player_matches & matches table.")
+   
+   return matches_parsed
 
 ## Formatted Match Line
 # TODO - from DB?
