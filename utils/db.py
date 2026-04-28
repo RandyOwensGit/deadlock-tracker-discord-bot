@@ -1,3 +1,5 @@
+from sqlalchemy import desc
+
 from database import Match, Player, PlayerMatch, Session
 from bot import logger
 
@@ -170,6 +172,17 @@ def create_player_match_without_salts(data, steam_id) -> int:
    finally:
       session.close()
 
+# Get match data
+def get_match(match_id):
+   session = Session()
+
+   match = session.query(Match).filter_by(match_id=match_id).first()
+
+   if match:
+      return match
+   else:
+      return None
+
 # Get steam_id using discord_id
 def get_steam_id_from_discord_id(discord_id: int) -> int:
    session = Session()
@@ -191,3 +204,31 @@ def get_deadlock_id_from_steam_id(steam_id: int) -> int:
       return player.deadlock_api_id
    else:
       return None
+
+# Get Highest Kills match for user
+def get_highest_kills_match(steam_id: int):
+   session = Session()
+
+   try:
+      row = session.query(PlayerMatch)\
+                      .filter_by(steam_id=steam_id)\
+                      .order_by(desc(PlayerMatch.kills))\
+                      .first()
+      
+      # Return data as dictionary
+      data = {
+         "match_id": row.match_id,
+         "hero_id": row.hero_id,
+         "kills": row.kills,
+         "deaths": row.deaths,
+         "assists": row.assists,
+         "net_worth": row.net_worth,
+         "team": row.team,
+         "timestamp": row.matches.timestamp if row.matches else None,
+         "duration_s": row.matches.duration_s if row.matches else None,
+         "winning_team": row.matches.winning_team if row.matches else None
+      }
+
+      return data
+   finally:
+      session.close()

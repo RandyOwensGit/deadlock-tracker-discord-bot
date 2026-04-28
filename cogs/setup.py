@@ -6,10 +6,10 @@ import discord
 import bot
 from bot import logger
 from discord.ext import commands
-from database import Player, Session
-from utils.api import get_all_matches, get_last_matches, get_match
-from utils.db import create_match, create_player, create_player_match_with_salts, create_player_match_without_salts, get_deadlock_id_from_steam_id, get_steam_id_from_discord_id
+from utils.api import get_all_matches, get_last_matches
+from utils.db import create_player, get_deadlock_id_from_steam_id, get_highest_kills_match, get_steam_id_from_discord_id
 from utils.helpers import format_match_line, save_matches_to_db
+from utils.heroes import HERO_MAP
 
 executor = ThreadPoolExecutor(max_workers=3)
 
@@ -110,6 +110,39 @@ class SetupCog(commands.Cog):
       except Exception as e:
          await ctx.send(f"Error parsing matches for user {ctx.author.name}::: {e}")
 
+# Command for getting calling users highest kill match
+# TODO make command so someone can call it on someone else
+   @commands.command(name="recordkills")
+   async def highest_kills_record(self, ctx):
+      steam_id = get_steam_id_from_discord_id(ctx.author.id)
+
+      match = get_highest_kills_match(steam_id)
+      
+      # Error handling
+      if not match:
+         await ctx.send(f"No matches found for {ctx.author.name}")
+
+      # Get hero name instead of id
+      hero_name = HERO_MAP.get(str(match["hero_id"]))
+
+      # Get win or loss
+      if match["team"] == match["winning_team"]:
+         result = "Win"
+      else:
+         result = "Loss"
+      
+      embed = discord.Embed(
+         title=f"{ctx.author.name}'s Highest Kills Match",
+         color=discord.Color.gold()
+      )
+      embed.add_field(name="Hero", value=hero_name, inline=True)
+      embed.add_field(name="Kills", value=match["kills"], inline=True)
+      embed.add_field(name="KDA", value=f"{match["kills"]}/{match["deaths"]}/{match["assists"]}", inline=True)
+      embed.add_field(name="Net Worth", value=f"{match["net_worth"]}", inline=True)
+      embed.add_field(name="Result", value=f"{result}", inline=True)
+      embed.add_field(name="Date", value=f"{datetime.datetime.fromtimestamp(match["timestamp"])}")
+
+      await ctx.send(embed=embed)
 
 async def setup(bot):
    await bot.add_cog(SetupCog(bot))

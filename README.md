@@ -19,7 +19,7 @@ data -> Various helper data
 - [ ] Create new commands:
    - [x] setup
    - [x] update_matches
-   - [ ] records
+   - [ ] various records (record_kills, record_deaths, etc.)
    - [ ] lanestats 
    - [ ] stats (hero)
    - [ ] generalstats
