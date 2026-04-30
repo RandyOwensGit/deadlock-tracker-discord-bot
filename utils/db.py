@@ -232,3 +232,5 @@ def get_highest_kills_match(steam_id: int):
       return data
    finally:
       session.close()
+
+# TODO: Create a Function so that the row and related rows are returned as dictionary
