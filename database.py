@@ -20,6 +20,7 @@ class Player(Base):
    discord_id = sa.Column(sa.BigInteger, unique=True, index=True, nullable=True)
    deadlock_api_id = sa.Column(sa.BigInteger, index=True, nullable=True)
    display_name = sa.Column(sa.String(100), nullable=True)
+   xp = sa.Column(sa.BigInteger, default=0)
 
    player_matches = relationship("PlayerMatch", back_populates="players")
 
