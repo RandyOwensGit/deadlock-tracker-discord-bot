@@ -7,8 +7,8 @@ import bot
 from bot import logger
 from discord.ext import commands
 from utils.api import get_all_matches, get_last_matches
-from utils.db import create_player, get_deadlock_id_from_steam_id, get_highest_kills_match, get_steam_id_from_discord_id
-from utils.helpers import format_match_line, save_matches_to_db
+from utils.db import create_player, get_deadlock_id_from_steam_id, get_highest_kills_match, get_player_records, get_steam_id_from_discord_id, save_matches_to_db
+from utils.helpers import format_match_line
 from utils.heroes import HERO_MAP
 
 executor = ThreadPoolExecutor(max_workers=3)
@@ -97,10 +97,14 @@ class SetupCog(commands.Cog):
       if steam_id == None:
          await ctx.send(f"You are not setup with this bot yet. Enter !setup <steamid64>")
       
-      await ctx.send("Populating the database... Could take a bit.")
+      await ctx.send("Populating your history into the database... Could take a bit.")
 
       def blocking_task():
-         amtOfMatchesSaved = save_matches_to_db(steam_id, deadlock_id, get_all_matches(steam_id))
+         # Get match history as a list
+         matchList = get_all_matches(steam_id)
+
+         # Pass match history list to db function to handle
+         amtOfMatchesSaved = save_matches_to_db(steam_id, deadlock_id, matchList)
 
          return amtOfMatchesSaved
       try:
@@ -141,6 +145,35 @@ class SetupCog(commands.Cog):
       embed.add_field(name="Net Worth", value=f"{match["net_worth"]}", inline=True)
       embed.add_field(name="Result", value=f"{result}", inline=True)
       embed.add_field(name="Date", value=f"{datetime.datetime.fromtimestamp(match["timestamp"])}")
+
+      await ctx.send(embed=embed)
+
+# Test command to display all player records
+   @commands.command(name="records")
+   async def player_records(self, ctx):
+      steam_id = get_steam_id_from_discord_id(ctx.author.id)
+
+      records = get_player_records(steam_id)
+
+      if not records:
+         await ctx.send(f"No records found for {ctx.author.name}")
+         return
+
+      embed = discord.Embed(
+         title=f"{ctx.author.name}'s Records",
+         color=discord.Color.gold()
+      )
+
+      for stat_name, data in records.items():
+         value = data["value"]
+         hero = HERO_MAP.get(str(data.get('hero_id')))
+         date = datetime.datetime.fromtimestamp(data["timestamp"])
+
+         embed.add_field(
+            name=stat_name.replace("_", " ").title(),
+            value=f"*{value}* on {hero}\n{date}",
+            inline=True
+         )
 
       await ctx.send(embed=embed)
 

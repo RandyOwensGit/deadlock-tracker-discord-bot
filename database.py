@@ -34,8 +34,10 @@ class PlayerRecord(Base):
    stat_name = sa.Column(sa.String(30), nullable=False, index=True) # record name
    stat_value = sa.Column(sa.Integer, nullable=False)
 
-   match_id = sa.Column(sa.BigInteger, nullable=False)
+   match_id = sa.Column(sa.BigInteger, sa.ForeignKey("matches.match_id"), nullable=False)
    hero_id = sa.Column(sa.Integer, nullable=True) # Not required for all records
+
+   match = relationship("Match")
 
    # composite unique constraint on steam_id and stat_name
    __table_args__ = (
