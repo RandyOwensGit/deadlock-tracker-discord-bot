@@ -6,7 +6,7 @@ import discord
 import bot
 from bot import logger
 from discord.ext import commands
-from utils.api import get_all_matches, get_last_matches
+from utils.api import get_all_matches, get_last_matches, get_match
 from utils.db import create_player, get_deadlock_id_from_steam_id, get_highest_kills_match, get_player_records, get_steam_id_from_discord_id, save_matches_to_db
 from utils.helpers import format_match_line
 from utils.heroes import HERO_MAP
@@ -47,7 +47,6 @@ class SetupCog(commands.Cog):
       
       await ctx.send(embed=embed)
 
-# Command for setting up 'Profile'
 # Requires steamid64
    @commands.command(name="setup")
    async def setup(self, ctx, steam_id: str):
@@ -96,57 +95,28 @@ class SetupCog(commands.Cog):
 
       if steam_id == None:
          await ctx.send(f"You are not setup with this bot yet. Enter !setup <steamid64>")
+         return
       
-      await ctx.send("Populating your history into the database... Could take a bit.")
+      await ctx.send("Adding matches...")
 
       def blocking_task():
          # Get match history as a list
          matchList = get_all_matches(steam_id)
 
          # Pass match history list to db function to handle
-         amtOfMatchesSaved = save_matches_to_db(steam_id, deadlock_id, matchList)
+         amt_of_matches_saved = save_matches_to_db(steam_id, deadlock_id, matchList)
 
-         return amtOfMatchesSaved
+         return amt_of_matches_saved
       try:
-         matchesSaved = await asyncio.get_event_loop().run_in_executor(executor, blocking_task)
-         await ctx.send(f"Finished parsing matches into database for user {ctx.author.name}")
-         await ctx.send(f"{matchesSaved} matches populated into the DB for SteamID: {steam_id}\n")
+         matches_saved = await asyncio.get_event_loop().run_in_executor(executor, blocking_task)
+         await ctx.send(f"...Finished adding matches for {ctx.author.name}")
+
+         if matches_saved == 0:
+            await ctx.send(f"{ctx.author.name} has no new matches to be added. Play more Deadlock!")
+         else:
+            await ctx.send(f"{matches_saved} matches populated into the DB for SteamID: {steam_id}\n")
       except Exception as e:
          await ctx.send(f"Error parsing matches for user {ctx.author.name}::: {e}")
-
-# Command for getting calling users highest kill match
-# TODO make command so someone can call it on someone else
-   @commands.command(name="recordkills")
-   async def highest_kills_record(self, ctx):
-      steam_id = get_steam_id_from_discord_id(ctx.author.id)
-
-      match = get_highest_kills_match(steam_id)
-      
-      # Error handling
-      if not match:
-         await ctx.send(f"No matches found for {ctx.author.name}")
-
-      # Get hero name instead of id
-      hero_name = HERO_MAP.get(str(match["hero_id"]))
-
-      # Get win or loss
-      if match["team"] == match["winning_team"]:
-         result = "Win"
-      else:
-         result = "Loss"
-      
-      embed = discord.Embed(
-         title=f"{ctx.author.name}'s Highest Kills Match",
-         color=discord.Color.gold()
-      )
-      embed.add_field(name="Hero", value=hero_name, inline=True)
-      embed.add_field(name="Kills", value=match["kills"], inline=True)
-      embed.add_field(name="KDA", value=f"{match["kills"]}/{match["deaths"]}/{match["assists"]}", inline=True)
-      embed.add_field(name="Net Worth", value=f"{match["net_worth"]}", inline=True)
-      embed.add_field(name="Result", value=f"{result}", inline=True)
-      embed.add_field(name="Date", value=f"{datetime.datetime.fromtimestamp(match["timestamp"])}")
-
-      await ctx.send(embed=embed)
 
 # Test command to display all player records
    @commands.command(name="records")
@@ -165,7 +135,7 @@ class SetupCog(commands.Cog):
       )
 
       for stat_name, data in records.items():
-         value = data["value"]
+         value = data["stat_value"]
          hero = HERO_MAP.get(str(data.get('hero_id')))
          date = datetime.datetime.fromtimestamp(data["timestamp"])
 
@@ -176,6 +146,13 @@ class SetupCog(commands.Cog):
          )
 
       await ctx.send(embed=embed)
+
+# Command to see player Career
+   @commands.command(name="career")
+   async def profile(self, ctx):
+      steam_id = get_steam_id_from_discord_id(ctx.author.id)
+
+
 
 async def setup(bot):
    await bot.add_cog(SetupCog(bot))

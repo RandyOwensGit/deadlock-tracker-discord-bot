@@ -36,7 +36,15 @@ def get_match(match_id: int) -> list:
       response.raise_for_status()
       return response.json()
    except requests.RequestException as e:
-      # TODO: Add error handling for matches that dont have salts
       logger.error(f"API request failed for {match_id}: {e}")
       return []
 
+def get_players_by_match(match_id: int) -> list:
+   url = MATCH_URL.format(match_id = match_id)
+   try:
+      response = requests.get(url, timeout=10)
+      response.raise_for_status()
+      return response.json()['match_info'].get('players')
+   except requests.RequestException as e:
+      logger.error(f"API request failed for {match_id}: {e}")
+      return [ ]

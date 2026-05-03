@@ -70,7 +70,7 @@ class PlayerMatch(Base):
    kills = sa.Column(sa.Integer, default=0)
    deaths = sa.Column(sa.Integer, default=0)
    assists = sa.Column(sa.Integer, default=0)
-   net_worth = sa.Column(sa.Integer, default=0)
+   souls = sa.Column(sa.Integer, default=0)
    denies = sa.Column(sa.Integer, default=0)
    last_hits = sa.Column(sa.Integer, default=0)
    lane = sa.Column(sa.Integer, default=0)

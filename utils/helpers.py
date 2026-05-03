@@ -1,7 +1,7 @@
 import datetime
 from utils.db import create_match, create_player_match_with_salts, create_player_match_without_salts
 from utils.heroes import HERO_MAP
-from utils.api import get_all_matches, get_match
+from utils.api import get_match
 from utils.friends import get_friend_name_by_steam_id, get_steam_id_by_deadlock_id
 from bot import logger
 
