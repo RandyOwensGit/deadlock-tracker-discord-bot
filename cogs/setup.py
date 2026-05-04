@@ -6,9 +6,9 @@ import discord
 import bot
 from bot import logger
 from discord.ext import commands
-from utils.api import get_all_matches, get_last_matches, get_match
-from utils.db import create_player, get_deadlock_id_from_steam_id, get_highest_kills_match, get_player_lifetime_stats, get_player_records, get_steam_id_from_discord_id, save_matches_to_db
-from utils.helpers import format_match_line
+from utils.api import get_all_matches, get_last_matches
+from utils.db import create_player, get_deadlock_id_from_steam_id, get_highest_kills_match, get_player_lifetime_stats, get_player_records, get_player_xp, get_steam_id_from_discord_id, save_matches_to_db
+from utils.helpers import format_match_line, get_level_from_xp
 from utils.heroes import HERO_MAP
 from datetime import datetime
 
@@ -51,8 +51,6 @@ class SetupCog(commands.Cog):
 # Requires steamid64
    @commands.command(name="setup")
    async def setup(self, ctx, steam_id: str):
-      print("Running setup command...")
-      print(f"Entered ID: {steam_id}")
 
    # Check for SteamID64
       if not steam_id.isdigit() or len(steam_id) != 17:
@@ -64,6 +62,8 @@ class SetupCog(commands.Cog):
       # Get deadlock_api_id
       data = get_last_matches(steam_id, 1)
       account_id = data[0]['account_id']
+
+      # TODO: Error Handling if they don't have any deadlock games
 
       add_player = create_player(
          steam_id_int, ctx.author.id, account_id, ctx.author.display_name
@@ -77,13 +77,13 @@ class SetupCog(commands.Cog):
          await ctx.send(f"Error adding {ctx.author.name}.")
          return
       
-      await ctx.send(
-         f"{ctx.author.name} added to the Deadlock Tracker.\n"
-         f"SteamID: {steam_id}\n"
-         f"DiscordID: {ctx.author.id}\n"
-         f"DeadlockID: {account_id}\n"
-         f"Now run !update_matches if you have any deadlock games played!"
-      )
+      embed = discord.Embed(title=f"{ctx.author.name} Added to the Deadlock Tracker", color=0x00ff80)
+      embed.add_field(name="Steam ID", value=steam_id, inline=True)
+      embed.add_field(name="Discord ID", value=ctx.author.id, inline=True)
+      embed.add_field(name="Deadlock ID", value=account_id, inline=True)
+      embed.set_footer(text="Now run !update_matches if you have any deadlock games played!")
+
+      await ctx.send(embed=embed)
 
 # Command for setting up Match History
 # Requires user to have ran the setup command
@@ -109,14 +109,21 @@ class SetupCog(commands.Cog):
          amt_of_matches_saved = save_matches_to_db(steam_id, deadlock_id, matchList)
 
          return amt_of_matches_saved
+      
       try:
-         matches_saved = await asyncio.get_event_loop().run_in_executor(executor, blocking_task)
-         await ctx.send(f"...Finished adding matches for {ctx.author.name}")
+         saved = await asyncio.get_event_loop().run_in_executor(executor, blocking_task)
 
-         if matches_saved == 0:
+         if saved[0] == 0:
             await ctx.send(f"{ctx.author.name} has no new matches to be added. Play more Deadlock!")
-         else:
-            await ctx.send(f"{matches_saved} matches populated into the DB for SteamID: {steam_id}\n")
+            return
+
+         embed = discord.Embed(title=f"Matches saved for {ctx.author.name}", color=discord.Color.gold())
+
+         embed.add_field(name="Matches Added", value=saved[0], inline=True)
+         embed.add_field(name="XP earned", value=saved[1], inline=True)
+
+         await ctx.send(embed=embed)
+
       except Exception as e:
          await ctx.send(f"Error parsing matches for user {ctx.author.name}::: {e}")
 
@@ -151,7 +158,7 @@ class SetupCog(commands.Cog):
 
 # Command to see player Career
    @commands.command(name="career")
-   async def profile(self, ctx):
+   async def career(self, ctx):
       steam_id = get_steam_id_from_discord_id(ctx.author.id)
 
       stats = get_player_lifetime_stats(steam_id)
@@ -173,6 +180,20 @@ class SetupCog(commands.Cog):
 
       await ctx.send(embed=embed)
 
+# Test command to see player level
+   @commands.command(name="level")
+   async def level(self, ctx):
+      steam_id = get_steam_id_from_discord_id(ctx.author.id)
+
+      xp = get_player_xp(steam_id)
+      level_info = get_level_from_xp(xp)
+
+      embed = discord.Embed(title=f"{ctx.author.name}'s Deadlock Tracker Level", color=discord.Color.gold())
+      embed.add_field(name="Level", value=level_info.get("level"), inline=True)
+      embed.add_field(name="Current XP", value=level_info.get("current_xp"), inline=True)
+      embed.add_field(name="XP until next level", value=level_info.get("xp_needed"), inline=True)
+
+      await ctx.send(embed=embed)
 
 async def setup(bot):
    await bot.add_cog(SetupCog(bot))

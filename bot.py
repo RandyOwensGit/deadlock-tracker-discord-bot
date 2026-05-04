@@ -22,7 +22,6 @@ bot = commands.Bot(command_prefix=COMMAND_PREFIX, intents=intents)
 @bot.event
 async def on_ready():
    logger.info(f"Bot is online as {bot.user} (ID: {bot.user.id})")
-   print(f"🚀 Bot is ready!")
 
 # Loading bot cogs ( commands )
 async def load_cogs():

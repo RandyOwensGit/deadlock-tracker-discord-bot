@@ -30,8 +30,12 @@ data -> Various helper data
    - [ ] various histories to show data overtime/progression/regression
 - [ ] updates on match completion
    - [ ]
+- [ ] format bot responses
 - [ ] Career lvl & xp system
-   - [ ]
+   - [ ] Basic
+   - [ ] Advanced?
+- [ ] Optimization
+   - [ ] Match Parsing speed (much needed)
 - [ ] Ranking System
    - [ ]
 - [ ] Auto rating system (will be rudimentary)

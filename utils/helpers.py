@@ -1,5 +1,4 @@
 import datetime
-from utils.db import create_match, create_player_match_with_salts, create_player_match_without_salts
 from utils.heroes import HERO_MAP
 from utils.api import get_match
 from utils.friends import get_friend_name_by_steam_id, get_steam_id_by_deadlock_id
@@ -108,40 +107,47 @@ def win_or_lose(team: int, match_id: int) -> bool:
       return False
    
 # Function to get amount of XP
-def get_xp_from_match(player_match) -> int:
-   xp_total = 10
-   # Match Played: 10xp
+def get_xp_from_match(player_match, match_result) -> int:
+   xp_total = 5
+   # Match Played: 5xp
    # Kills: 4xp
    # Assists: 2xp
    # dmg per 5k: 1xp
    # healing per 5k: 2xp
    # win: 10xp
-   # Souls per 1k: 1xp
+   # Souls per 5k: 1xp
 
    # Get Basic match xp
    xp_total += 4 * player_match.kills
    xp_total += 2 * player_match.assists
-   xp_total += player_match.souls / 1000 * 1 
+   xp_total += (player_match.souls // 5000) * 1 
 
-   if player_match.team == player_match.match.winning_team:
+   if player_match.team == match_result:
       xp_total += 10
 
    if player_match.is_complete:
-      xp_total += player_match.player_damage / 5000 * 1
-      xp_total += player_match.player_healing / 5000 * 2
+      xp_total += (player_match.player_damage // 5000) * 1
+      xp_total += (player_match.player_healing // 5000) * 2
 
-   return xp_total
+   return round(xp_total)
 
 # Function to find level from xp
+# A * n^B + C   (A = Base Value 100, n is lvl, B is 1.50 and C is extra 50)
 def get_level_from_xp(xp: int) -> dict:
    level = 1
+   
+   A = 25
+   B = 2
+   C = 25
 
-   while True:
-      current_threshold = int(100 * level ** 1.5 + 50)
-      next_threshold = int(100 * (level + 1) ** 1.5 + 50)
-      if xp < next_threshold:
-         return {
-            "level": level,
-            "current_xp": xp - current_threshold,
-            "xp_needed": next_threshold - current_threshold
-         }
+   while xp >= int(A * level ** B + C):
+      level += 1
+
+   current_floor = int(A * level ** B + C) if level > 1 else 0
+   next_floor = int(A * (level + 1) ** B + C)
+
+   return {
+      "level": level,
+      "current_xp": round(xp),
+      "xp_needed": round(next_floor - xp)
+   }

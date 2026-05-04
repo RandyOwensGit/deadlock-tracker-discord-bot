@@ -195,13 +195,15 @@ def update_player_record(session, steam_id: int, match_id: int, stat_name: str, 
 
 """ Large Function: Handles all the match history processing, match, playermatch, playerrecords"""
 """ Returns number of matches saved """
-def save_matches_to_db(steam_id: int, deadlock_id: int, matches: list) -> int:
+def save_matches_to_db(steam_id: int, deadlock_id: int, matches: list) -> list:
    matches_saved = 0 # Keeping track of match total
 
    # Opening new session to handle all the future DB commits with (One large commit)
    session = Session()
 
    try:
+      xp = 0
+      current_xp = 0
       for match in matches:
          # Create new match via DB
          # TODO later: Make it so if the match has already been added, end the entire function.
@@ -215,7 +217,6 @@ def save_matches_to_db(steam_id: int, deadlock_id: int, matches: list) -> int:
 
          # Check if match doesn't have salts
          if not players:
-            print(f"After create_match() - Inside if not match data")
             # Save basic data
             player_match = create_player_match_without_salts(session, match, steam_id)
             
@@ -225,7 +226,8 @@ def save_matches_to_db(steam_id: int, deadlock_id: int, matches: list) -> int:
                
             matches_saved += 1
 
-            xp = get_xp_from_match(player_match)
+            xp = get_xp_from_match(player_match, match.get('match_result'))
+            current_xp += xp
             update_player_xp(session, steam_id, xp)
 
             # Add Player Records from match
@@ -244,7 +246,8 @@ def save_matches_to_db(steam_id: int, deadlock_id: int, matches: list) -> int:
 
                matches_saved += 1
 
-               xp = get_xp_from_match(player_match)
+               xp = get_xp_from_match(player_match, match.get('match_result'))
+               current_xp += xp
                update_player_xp(session, steam_id, xp)
 
                # Add Player Records from match
@@ -253,7 +256,7 @@ def save_matches_to_db(steam_id: int, deadlock_id: int, matches: list) -> int:
       session.commit()
       logger.info(f"COMMIT: Match History for {steam_id} parsed and committed to DB!")
 
-      return matches_saved
+      return [matches_saved, current_xp]
 
    except Exception as e:
       session.rollback()
@@ -348,6 +351,15 @@ def update_player_xp(session, steam_id: int, xp):
    # Check if existing record and update
    if existing:
       existing.xp = existing.xp + xp
+
+def get_player_xp(steam_id: int) -> int:
+   session = Session()
+
+   try:
+      player = session.query(Player).filter_by(steam_id=steam_id).first()
+      return player.xp
+   finally:
+      session.close()
 
 # Get match data
 def get_match_from_db(match_id):
