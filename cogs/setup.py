@@ -7,7 +7,7 @@ import bot
 from bot import logger
 from discord.ext import commands
 from utils.api import get_all_matches, get_last_matches, get_match
-from utils.db import create_player, get_deadlock_id_from_steam_id, get_highest_kills_match, get_player_records, get_steam_id_from_discord_id, save_matches_to_db
+from utils.db import create_player, get_deadlock_id_from_steam_id, get_highest_kills_match, get_player_lifetime_stats, get_player_records, get_steam_id_from_discord_id, save_matches_to_db
 from utils.helpers import format_match_line
 from utils.heroes import HERO_MAP
 
@@ -73,7 +73,8 @@ class SetupCog(commands.Cog):
          return
       
       if add_player == 2:
-         await ctx.send(f"{ctx.author.name} error adding player to players table.")
+         await ctx.send(f"Error adding {ctx.author.name}.")
+         return
       
       await ctx.send(
          f"{ctx.author.name} added to the Deadlock Tracker.\n"
@@ -152,6 +153,24 @@ class SetupCog(commands.Cog):
    async def profile(self, ctx):
       steam_id = get_steam_id_from_discord_id(ctx.author.id)
 
+      stats = get_player_lifetime_stats(steam_id)
+
+      total_shots = stats["total_shots_hit"] + stats["total_shots_missed"]
+      accuracy = (stats["total_shots_hit"] / total_shots * 100)
+
+      embed = discord.Embed(title=f"{ctx.author.name}'s Career", color=discord.Color.gold())
+      embed.add_field(name="Games Played", value=stats["total_matches"], inline=True)
+      embed.add_field(name="Kills", value=stats["total_kills"], inline=True)
+      embed.add_field(name="Deaths", value=stats["total_deaths"], inline=True)
+      embed.add_field(name="Assists", value=stats["total_assists"], inline=True)
+      embed.add_field(name="Souls", value=stats["total_souls"], inline=True)
+      embed.add_field(name="Player Damage", value=stats["total_damage"], inline=True)
+      embed.add_field(name="Player Healing", value=stats["total_healing"], inline=True)
+      embed.add_field(name="Accuracy", value=accuracy, inline=True)
+      embed.add_field(name="Win Rate", value=stats["winrate"], inline=True)
+      embed.add_field(name="Average (K/D/A)", value=f"{stats["avg_kills"]}/{stats["avg_deaths"]}/{stats["avg_assists"]}", inline=True)
+
+      await ctx.send(embed=embed)
 
 
 async def setup(bot):

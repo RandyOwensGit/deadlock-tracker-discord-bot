@@ -19,16 +19,14 @@ data -> Various helper data
 - [ ] Create new commands:
    - [x] setup
    - [x] update_matches
-   - [ ] various records (record_kills, record_deaths, etc.)
+   - [x] various records (record_kills, record_deaths, etc.)
    - [ ] lanestats 
    - [ ] stats (hero)
-   - [ ] generalstats
-   - [ ] careerstats
-   - [ ] career
+   - [x] records
+   - [x] careerstats
    - [ ] match x
    - [ ] versus
    - [ ] various histories to show data overtime/progression/regression
-   - [ ]
 - [ ] updates on match completion
    - [ ]
 - [ ] Career lvl & xp system
@@ -37,14 +35,7 @@ data -> Various helper data
    - [ ]
 - [ ] Auto rating system (will be rudimentary)
 - [ ] Create web page
-- [ ] Data visualization
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
+- [ ] Data visualization system
 - [ ] 
 - [ ] 
 - [ ] 

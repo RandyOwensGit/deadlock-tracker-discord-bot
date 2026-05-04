@@ -55,7 +55,8 @@ class Match(Base):
    winning_team = sa.Column(sa.Integer, nullable=True) 
    # Could store full API response
 
-   player_matches = relationship("PlayerMatch", back_populates="matches")
+   player_matches = relationship("PlayerMatch", back_populates="match")
+
 
 #  Player Matches Table
 class PlayerMatch(Base):
@@ -89,8 +90,8 @@ class PlayerMatch(Base):
    )
 
    # Relationships
-   matches = relationship("Match", back_populates="player_matches")
-   players = relationship("Player", back_populates="player_matches")
+   match = relationship("Match", back_populates="player_matches")
+   players = relationship("Player", back_populates="player_matches") 
 
 # Eventual table for items at end of game
 

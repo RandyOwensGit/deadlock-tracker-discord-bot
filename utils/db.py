@@ -280,9 +280,10 @@ def get_player_lifetime_stats(steam_id: int) -> dict:
       
       # Get wins
       wins = session.query(func.count(PlayerMatch.id))\
+                    .join(Match, PlayerMatch.match_id == Match.match_id)\
                     .filter(
                        PlayerMatch.steam_id == steam_id,
-                       PlayerMatch.team == PlayerMatch.matches.winning_team
+                       PlayerMatch.team == Match.winning_team
                     ).scalar() or 0
       
       winrate = (wins / stats.total_matches * 100) if stats.total_matches > 0 else 0
