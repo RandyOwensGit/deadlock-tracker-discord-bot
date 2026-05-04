@@ -16,6 +16,7 @@ data -> Various helper data
    - [x] Match Parser without salts
    - [x] Fix async issues
 - [x] link data to specific discord accounts
+- [ ] Add real concurrency
 - [ ] Create new commands:
    - [x] setup
    - [x] update_matches

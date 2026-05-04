@@ -10,6 +10,7 @@ from utils.api import get_all_matches, get_last_matches, get_match
 from utils.db import create_player, get_deadlock_id_from_steam_id, get_highest_kills_match, get_player_lifetime_stats, get_player_records, get_steam_id_from_discord_id, save_matches_to_db
 from utils.helpers import format_match_line
 from utils.heroes import HERO_MAP
+from datetime import datetime
 
 executor = ThreadPoolExecutor(max_workers=3)
 
@@ -138,11 +139,11 @@ class SetupCog(commands.Cog):
       for stat_name, data in records.items():
          value = data["stat_value"]
          hero = HERO_MAP.get(str(data.get('hero_id')))
-         date = datetime.datetime.fromtimestamp(data["timestamp"])
+         date = datetime.fromtimestamp(data["timestamp"]).strftime("%Y-%m-%d")
 
          embed.add_field(
             name=stat_name.replace("_", " ").title(),
-            value=f"*{value}* on {hero}\n{date}",
+            value=f"*{value:,}* on {hero}\n{date}",
             inline=True
          )
 
@@ -160,13 +161,13 @@ class SetupCog(commands.Cog):
 
       embed = discord.Embed(title=f"{ctx.author.name}'s Career", color=discord.Color.gold())
       embed.add_field(name="Games Played", value=stats["total_matches"], inline=True)
-      embed.add_field(name="Kills", value=stats["total_kills"], inline=True)
-      embed.add_field(name="Deaths", value=stats["total_deaths"], inline=True)
-      embed.add_field(name="Assists", value=stats["total_assists"], inline=True)
-      embed.add_field(name="Souls", value=stats["total_souls"], inline=True)
-      embed.add_field(name="Player Damage", value=stats["total_damage"], inline=True)
-      embed.add_field(name="Player Healing", value=stats["total_healing"], inline=True)
-      embed.add_field(name="Accuracy", value=accuracy, inline=True)
+      embed.add_field(name="Kills", value=f"{stats["total_kills"]:,}", inline=True)
+      embed.add_field(name="Deaths", value=f"{stats["total_deaths"]:,}", inline=True)
+      embed.add_field(name="Assists", value=f"{stats["total_assists"]:,}", inline=True)
+      embed.add_field(name="Souls", value=f"{stats["total_souls"]:,}", inline=True)
+      embed.add_field(name="Player Damage", value=f"{stats["total_damage"]:,}", inline=True)
+      embed.add_field(name="Player Healing", value=f"{stats["total_healing"]:,}", inline=True)
+      embed.add_field(name="Accuracy", value=round(float(accuracy), 2), inline=True)
       embed.add_field(name="Win Rate", value=stats["winrate"], inline=True)
       embed.add_field(name="Average (K/D/A)", value=f"{stats["avg_kills"]}/{stats["avg_deaths"]}/{stats["avg_assists"]}", inline=True)
 

@@ -151,7 +151,7 @@ def update_all_player_records(session, steam_id: int, player_match):
       ("souls", player_match.souls),
       ("denies", player_match.denies),
       ("last_hits", player_match.last_hits),
-      ("kda", rounded_kda)
+      ("KDA", rounded_kda)
    ]
 
    # Iterate over list to update/create record
@@ -302,7 +302,7 @@ def get_player_lifetime_stats(steam_id: int) -> dict:
          "avg_kills": round(float(stats.avg_kills or 0), 2),
          "avg_deaths": round(float(stats.avg_deaths or 0), 2),
          "avg_assists": round(float(stats.avg_assists or 0), 2),
-         "winrate": winrate
+         "winrate": round(float(winrate), 2)
       }
 
    finally:
@@ -357,8 +357,6 @@ def get_steam_id_from_discord_id(discord_id: int) -> int:
       return player.steam_id
    else:
       return None
-   
-   
    
 # Get deadlock-api id using steam_id
 def get_deadlock_id_from_steam_id(steam_id: int) -> int:
