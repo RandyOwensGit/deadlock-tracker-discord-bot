@@ -99,9 +99,6 @@ def format_match_line(match: dict, steam_id: int) -> str:
 
    return f"{hero_name:<12} | {result:<4} | {kda:<8} | {souls_formatted:<7}souls | {duration} | Lane Partner: {lane_partner}"
 
-# TODO: Function to easier get hero name from hero id
-
-# TODO: Function to determine if user won or loss match
 def win_or_lose(team: int, match_id: int) -> bool:
    match = get_match(match_id)
 
@@ -109,3 +106,42 @@ def win_or_lose(team: int, match_id: int) -> bool:
       return True
    else:
       return False
+   
+# Function to get amount of XP
+def get_xp_from_match(player_match) -> int:
+   xp_total = 10
+   # Match Played: 10xp
+   # Kills: 4xp
+   # Assists: 2xp
+   # dmg per 5k: 1xp
+   # healing per 5k: 2xp
+   # win: 10xp
+   # Souls per 1k: 1xp
+
+   # Get Basic match xp
+   xp_total += 4 * player_match.kills
+   xp_total += 2 * player_match.assists
+   xp_total += player_match.souls / 1000 * 1 
+
+   if player_match.team == player_match.match.winning_team:
+      xp_total += 10
+
+   if player_match.is_complete:
+      xp_total += player_match.player_damage / 5000 * 1
+      xp_total += player_match.player_healing / 5000 * 2
+
+   return xp_total
+
+# Function to find level from xp
+def get_level_from_xp(xp: int) -> dict:
+   level = 1
+
+   while True:
+      current_threshold = int(100 * level ** 1.5 + 50)
+      next_threshold = int(100 * (level + 1) ** 1.5 + 50)
+      if xp < next_threshold:
+         return {
+            "level": level,
+            "current_xp": xp - current_threshold,
+            "xp_needed": next_threshold - current_threshold
+         }

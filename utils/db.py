@@ -3,6 +3,7 @@ from sqlalchemy.orm import joinedload
 from database import Match, Player, PlayerMatch, PlayerRecord, Session
 from bot import logger
 from utils.api import get_match, get_players_by_match
+from utils.helpers import get_xp_from_match
 
 """ Functions related to accessing the Database """
 
@@ -224,6 +225,9 @@ def save_matches_to_db(steam_id: int, deadlock_id: int, matches: list) -> int:
                
             matches_saved += 1
 
+            xp = get_xp_from_match(player_match)
+            update_player_xp(session, steam_id, xp)
+
             # Add Player Records from match
             update_all_player_records(session, steam_id, player_match)
          
@@ -239,6 +243,9 @@ def save_matches_to_db(steam_id: int, deadlock_id: int, matches: list) -> int:
                   continue
 
                matches_saved += 1
+
+               xp = get_xp_from_match(player_match)
+               update_player_xp(session, steam_id, xp)
 
                # Add Player Records from match
                update_all_player_records(session, steam_id, player_match)
@@ -331,6 +338,16 @@ def get_player_records(steam_id: int) -> dict:
       return result
    finally:
       session.close()
+
+def update_player_xp(session, steam_id: int, xp):
+   # Query for player row
+   existing = session.query(Player).filter_by(
+      steam_id=steam_id
+   ).first()
+
+   # Check if existing record and update
+   if existing:
+      existing.xp = existing.xp + xp
 
 # Get match data
 def get_match_from_db(match_id):
