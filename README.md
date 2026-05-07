@@ -32,8 +32,9 @@ data -> Various helper data
    - [ ]
 - [ ] format bot responses
 - [ ] Career lvl & xp system
-   - [ ] Basic
+   - [x] Basic
    - [ ] Advanced?
+- [ ] Better code organization, documentation, comments
 - [ ] Optimization
    - [ ] Match Parsing speed (much needed)
 - [ ] Ranking System
